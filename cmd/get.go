@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -25,9 +26,16 @@ var getCommand = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		getConfig.Group = args[0]
-		b := blade.NewBlade(&getConfig, &awsConfig, &getOutputConfig)
+		ctx := context.Background()
+
+		b, err := blade.NewBlade(&getConfig, &awsConfig, &getOutputConfig)
+		if err != nil {
+			fmt.Printf("Failed to create blade: %v\n", err)
+			os.Exit(1)
+		}
+
 		if getConfig.Prefix != "" {
-			streams := b.GetLogStreams()
+			streams := b.GetLogStreams(ctx)
 			if len(streams) == 0 {
 				fmt.Printf("No streams found in %s with prefix %s\n", getConfig.Group, getConfig.Prefix)
 				fmt.Printf("To view available streams: `saw streams %s`\n", getConfig.Group)
@@ -35,7 +43,7 @@ var getCommand = &cobra.Command{
 			}
 			getConfig.Streams = streams
 		}
-		b.GetEvents()
+		b.GetEvents(ctx)
 	},
 }
 

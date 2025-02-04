@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/TylerBrock/saw/blade"
 	"github.com/TylerBrock/saw/config"
@@ -23,9 +25,14 @@ var streamsCommand = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		streamsConfig.Group = args[0]
-		b := blade.NewBlade(&streamsConfig, &awsConfig, nil)
+		ctx := context.Background()
+		b, err := blade.NewBlade(&streamsConfig, &awsConfig, nil)
+		if err != nil {
+			fmt.Println("Error creating blade:", err)
+			os.Exit(1)
+		}
 
-		logStreams := b.GetLogStreams()
+		logStreams := b.GetLogStreams(ctx)
 		for _, stream := range logStreams {
 			fmt.Println(*stream.LogStreamName)
 		}

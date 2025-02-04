@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"os"
 
 	"github.com/TylerBrock/saw/blade"
 	"github.com/TylerBrock/saw/config"
@@ -16,8 +18,14 @@ var groupsCommand = &cobra.Command{
 	Short: "List log groups",
 	Long:  "",
 	Run: func(cmd *cobra.Command, args []string) {
-		b := blade.NewBlade(&groupsConfig, &awsConfig, nil)
-		logGroups := b.GetLogGroups()
+		ctx := context.Background()
+		b, err := blade.NewBlade(&groupsConfig, &awsConfig, nil)
+		if err != nil {
+			fmt.Println("Error creating blade:", err)
+			os.Exit(1)
+		}
+
+		logGroups := b.GetLogGroups(ctx)
 		for _, group := range logGroups {
 			fmt.Println(*group.LogGroupName)
 		}
